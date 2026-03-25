@@ -254,7 +254,28 @@ public class BookingService {
           if (!canCancel(booking)) {
                return false;
           }
-          booking.setStatus(BookingStatus.CANCELED);
+          return false;
+     }
+
+     @Transactional
+     public boolean requestCancelMyBooking(Long id, String reason) {
+          UserAccount user = getCurrentUser();
+          if (user == null || user.getId() == null || id == null) {
+               return false;
+          }
+          Booking booking = bookingRepository.findWithDetailsById(id).orElse(null);
+          if (booking == null || booking.getUser() == null || !user.getId().equals(booking.getUser().getId())) {
+               return false;
+          }
+          if (!canCancel(booking)) {
+               return false;
+          }
+          BookingStatus prevStatus = booking.getStatus();
+          booking.setStatus(BookingStatus.CANCEL_REQUESTED);
+          appendNote(booking, "Yêu cầu hủy (KH): " + normalizeReason(reason));
+          if (prevStatus != null) {
+               appendNote(booking, "PrevStatus: " + prevStatus.name());
+          }
           bookingRepository.save(booking);
           return true;
      }
@@ -289,17 +310,38 @@ public class BookingService {
                return false;
           }
           booking.setStatus(BookingStatus.CANCELED);
-          if (reason != null && !reason.isBlank()) {
-               String staffReason = "Lý do hủy (NV): " + reason.trim();
-               String existing = booking.getNote();
-               String merged = existing == null || existing.isBlank()
-                         ? staffReason
-                         : existing + "\n" + staffReason;
-               if (merged.length() > 500) {
-                    merged = merged.substring(0, 500);
-               }
-               booking.setNote(merged);
+          appendNote(booking, "Lý do hủy (NV): " + normalizeReason(reason));
+          bookingRepository.save(booking);
+          return true;
+     }
+
+     @Transactional
+     public boolean approveCancelRequestByStaff(Long id, String reason) {
+          if (id == null) {
+               return false;
           }
+          Booking booking = bookingRepository.findById(id).orElse(null);
+          if (booking == null || booking.getStatus() != BookingStatus.CANCEL_REQUESTED) {
+               return false;
+          }
+          booking.setStatus(BookingStatus.CANCELED);
+          appendNote(booking, "Duyệt hủy (NV): " + normalizeReason(reason));
+          bookingRepository.save(booking);
+          return true;
+     }
+
+     @Transactional
+     public boolean rejectCancelRequestByStaff(Long id, String reason) {
+          if (id == null) {
+               return false;
+          }
+          Booking booking = bookingRepository.findById(id).orElse(null);
+          if (booking == null || booking.getStatus() != BookingStatus.CANCEL_REQUESTED) {
+               return false;
+          }
+          BookingStatus prevStatus = extractPrevStatus(booking.getNote());
+          booking.setStatus(prevStatus != null ? prevStatus : BookingStatus.PENDING);
+          appendNote(booking, "Từ chối hủy (NV): " + normalizeReason(reason));
           bookingRepository.save(booking);
           return true;
      }
@@ -342,6 +384,43 @@ public class BookingService {
           String datePart = date != null ? date.format(DateTimeFormatter.BASIC_ISO_DATE) : "";
           String rand = UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
           return "BK" + datePart + rand;
+     }
+
+     private void appendNote(Booking booking, String noteLine) {
+          if (booking == null || noteLine == null || noteLine.isBlank()) {
+               return;
+          }
+          String existing = booking.getNote();
+          String merged = existing == null || existing.isBlank()
+                    ? noteLine.trim()
+                    : existing + "\n" + noteLine.trim();
+          if (merged.length() > 500) {
+               merged = merged.substring(0, 500);
+          }
+          booking.setNote(merged);
+     }
+
+     private String normalizeReason(String reason) {
+          return (reason == null || reason.isBlank()) ? "Không ghi rõ" : reason.trim();
+     }
+
+     private BookingStatus extractPrevStatus(String note) {
+          if (note == null || note.isBlank()) {
+               return null;
+          }
+          String[] lines = note.split("\\n");
+          for (int i = lines.length - 1; i >= 0; i--) {
+               String line = lines[i].trim();
+               if (line.startsWith("PrevStatus:")) {
+                    String raw = line.replace("PrevStatus:", "").trim();
+                    try {
+                         return BookingStatus.valueOf(raw);
+                    } catch (IllegalArgumentException ignored) {
+                         return null;
+                    }
+               }
+          }
+          return null;
      }
 
      private PassengerType resolvePassengerType(PassengerType type) {

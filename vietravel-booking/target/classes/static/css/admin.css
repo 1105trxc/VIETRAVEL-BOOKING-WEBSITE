@@ -509,8 +509,16 @@ img {
     grid-column: span 8
 }
 
+.col-7 {
+    grid-column: span 7
+}
+
 .col-4 {
     grid-column: span 4
+}
+
+.col-5 {
+    grid-column: span 5
 }
 
 .card {
@@ -1295,6 +1303,138 @@ img {
 
 .booking-info-actions .detail-actions {
     margin-top: 6px;
+}
+
+.review-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(37, 99, 235, .16), rgba(139, 92, 246, .16));
+    border: 1px solid rgba(148, 163, 184, .22);
+}
+
+.review-hero-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.review-hero-sub {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+.review-toggle-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.review-shell .review-card {
+    border: 1px solid rgba(148, 163, 184, .25);
+}
+
+.review-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-top: 12px;
+}
+
+.review-block {
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid rgba(148, 163, 184, .2);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, .05);
+}
+
+.review-label {
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #64748b;
+    margin-bottom: 6px;
+}
+
+.review-value {
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 6px;
+}
+
+.review-sub {
+    font-size: 13px;
+    color: #334155;
+    margin-top: 4px;
+}
+
+.review-divider {
+    height: 1px;
+    background: rgba(148, 163, 184, .25);
+    margin: 16px 0;
+}
+
+.review-note {
+    background: #f8fafc;
+    border: 1px dashed rgba(148, 163, 184, .35);
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.review-action {
+    background: #fff;
+    border: 1px solid rgba(148, 163, 184, .2);
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, .05);
+    margin-bottom: 14px;
+}
+
+.review-form {
+    display: none;
+}
+
+.review-form.is-open {
+    display: block;
+}
+
+.review-action-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.review-action-title {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.review-pill {
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+}
+
+.review-pill.approve {
+    background: rgba(34, 197, 94, .12);
+    color: #15803d;
+}
+
+.review-pill.reject {
+    background: rgba(239, 68, 68, .12);
+    color: #b91c1c;
 }
 
 .footer-inner {
