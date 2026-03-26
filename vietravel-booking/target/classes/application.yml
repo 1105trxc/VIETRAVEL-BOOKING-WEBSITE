@@ -11,7 +11,7 @@ spring:
     name: vietravel-booking
 
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/vietravel?useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh
+    url: jdbc:mysql://127.0.0.1:3306/vietravel_booking?useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh
     username: root
     password: "23092005"
     driver-class-name: com.mysql.cj.jdbc.Driver

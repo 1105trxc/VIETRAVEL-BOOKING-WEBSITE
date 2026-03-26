@@ -1,11 +1,9 @@
 package com.vietravel.booking.service.booking;
 
 import com.vietravel.booking.domain.entity.auth.UserAccount;
-import com.vietravel.booking.domain.entity.booking.Booking;
-import com.vietravel.booking.domain.entity.booking.BookingPassenger;
-import com.vietravel.booking.domain.entity.booking.BookingStatus;
-import com.vietravel.booking.domain.entity.booking.PassengerType;
-import com.vietravel.booking.domain.entity.booking.PaymentStatus;
+import com.vietravel.booking.domain.entity.auth.UserRole;
+import com.vietravel.booking.domain.entity.booking.*;
+import com.vietravel.booking.domain.entity.support.NotificationType;
 import com.vietravel.booking.domain.entity.tour.Departure;
 import com.vietravel.booking.domain.entity.tour.Tour;
 import com.vietravel.booking.domain.entity.tour.TourImage;
@@ -14,6 +12,7 @@ import com.vietravel.booking.domain.repository.booking.BookingRepository;
 import com.vietravel.booking.domain.repository.booking.PaymentRepository;
 import com.vietravel.booking.domain.repository.tour.DepartureRepository;
 import com.vietravel.booking.domain.repository.tour.TourRepository;
+import com.vietravel.booking.service.support.NotificationService;
 import com.vietravel.booking.web.dto.booking.BookingCreateRequest;
 import com.vietravel.booking.web.dto.booking.BookingCreateRequest.PassengerRequest;
 import com.vietravel.booking.web.dto.booking.BookingHistoryView;
@@ -25,8 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -39,17 +38,20 @@ public class BookingService {
      private final DepartureRepository departureRepository;
      private final UserAccountRepository userAccountRepository;
      private final PaymentRepository paymentRepository;
+     private final NotificationService notificationService;
 
      public BookingService(BookingRepository bookingRepository,
                TourRepository tourRepository,
                DepartureRepository departureRepository,
                UserAccountRepository userAccountRepository,
-               PaymentRepository paymentRepository) {
+               PaymentRepository paymentRepository,
+               NotificationService notificationService) {
           this.bookingRepository = bookingRepository;
           this.tourRepository = tourRepository;
           this.departureRepository = departureRepository;
           this.userAccountRepository = userAccountRepository;
           this.paymentRepository = paymentRepository;
+          this.notificationService = notificationService;
      }
 
      @Transactional
@@ -109,7 +111,28 @@ public class BookingService {
           }
           booking.setPassengers(passengers);
 
-          return bookingRepository.save(booking);
+          Booking saved = bookingRepository.save(booking);
+          if (saved.getUser() != null) {
+               notificationService.createForUser(
+                         saved.getUser(),
+                         "Đặt tour thành công",
+                         "Đơn hàng " + saved.getBookingCode() + " đã được tạo. Vui lòng theo dõi trạng thái đơn hàng.",
+                         NotificationType.SUCCESS,
+                         "/my-bookings");
+          }
+          notificationService.createForRole(
+                    UserRole.ADMIN,
+                    "Đơn hàng mới",
+                    "Có đơn hàng mới: " + saved.getBookingCode(),
+                    NotificationType.INFO,
+                    "/admin/bookings");
+          notificationService.createForRole(
+                    UserRole.STAFF,
+                    "Đơn hàng mới",
+                    "Có đơn hàng mới: " + saved.getBookingCode(),
+                    NotificationType.INFO,
+                    "/staff/bookings/process");
+          return saved;
      }
 
      @Transactional
@@ -170,7 +193,14 @@ public class BookingService {
           }
           booking.setPassengers(passengers);
 
-          return bookingRepository.save(booking);
+          Booking saved = bookingRepository.save(booking);
+          notificationService.createForRole(
+                    UserRole.ADMIN,
+                    "Đơn hàng mới",
+                    "Đơn hàng được tạo bởi nhân viên: " + saved.getBookingCode(),
+                    NotificationType.INFO,
+                    "/admin/bookings");
+          return saved;
      }
 
      @Transactional(readOnly = true)
@@ -195,7 +225,6 @@ public class BookingService {
           return results;
      }
 
-     @Transactional(readOnly = true)
      public BookingHistoryView getMyBookingDetail(Long id) {
           UserAccount user = getCurrentUser();
           if (user == null || user.getId() == null || id == null) {
@@ -277,6 +306,26 @@ public class BookingService {
                appendNote(booking, "PrevStatus: " + prevStatus.name());
           }
           bookingRepository.save(booking);
+          if (booking.getUser() != null) {
+               notificationService.createForUser(
+                         booking.getUser(),
+                         "Gửi yêu cầu hủy",
+                         "Đơn hàng " + booking.getBookingCode() + " đã gửi yêu cầu hủy. Chúng tôi sẽ phản hồi sớm.",
+                         NotificationType.INFO,
+                         "/my-bookings");
+          }
+          notificationService.createForRole(
+                    UserRole.STAFF,
+                    "Yêu cầu hủy đơn",
+                    "Có yêu cầu hủy cho đơn hàng: " + booking.getBookingCode(),
+                    NotificationType.WARNING,
+                    "/staff/bookings/cancel-requests");
+          notificationService.createForRole(
+                    UserRole.ADMIN,
+                    "Yêu cầu hủy đơn",
+                    "Có yêu cầu hủy cho đơn hàng: " + booking.getBookingCode(),
+                    NotificationType.WARNING,
+                    "/admin/bookings");
           return true;
      }
 
@@ -292,6 +341,14 @@ public class BookingService {
           if (booking.getStatus() == BookingStatus.PENDING || booking.getStatus() == BookingStatus.PAID) {
                booking.setStatus(BookingStatus.CONFIRMED);
                bookingRepository.save(booking);
+               if (booking.getUser() != null) {
+                    notificationService.createForUser(
+                              booking.getUser(),
+                              "Đơn hàng đã được xác nhận",
+                              "Đơn hàng " + booking.getBookingCode() + " đã được xác nhận.",
+                              NotificationType.SUCCESS,
+                              "/my-bookings");
+               }
                return true;
           }
           return false;
@@ -312,6 +369,14 @@ public class BookingService {
           booking.setStatus(BookingStatus.CANCELED);
           appendNote(booking, "Lý do hủy (NV): " + normalizeReason(reason));
           bookingRepository.save(booking);
+          if (booking.getUser() != null) {
+               notificationService.createForUser(
+                         booking.getUser(),
+                         "Đơn hàng đã bị hủy",
+                         "Đơn hàng " + booking.getBookingCode() + " đã bị hủy. Lý do: " + normalizeReason(reason),
+                         NotificationType.ERROR,
+                         "/my-bookings");
+          }
           return true;
      }
 
@@ -327,6 +392,14 @@ public class BookingService {
           booking.setStatus(BookingStatus.CANCELED);
           appendNote(booking, "Duyệt hủy (NV): " + normalizeReason(reason));
           bookingRepository.save(booking);
+          if (booking.getUser() != null) {
+               notificationService.createForUser(
+                         booking.getUser(),
+                         "Yêu cầu hủy được duyệt",
+                         "Đơn hàng " + booking.getBookingCode() + " đã được duyệt hủy.",
+                         NotificationType.SUCCESS,
+                         "/my-bookings");
+          }
           return true;
      }
 
@@ -343,6 +416,14 @@ public class BookingService {
           booking.setStatus(prevStatus != null ? prevStatus : BookingStatus.PENDING);
           appendNote(booking, "Từ chối hủy (NV): " + normalizeReason(reason));
           bookingRepository.save(booking);
+          if (booking.getUser() != null) {
+               notificationService.createForUser(
+                         booking.getUser(),
+                         "Yêu cầu hủy bị từ chối",
+                         "Yêu cầu hủy đơn hàng " + booking.getBookingCode() + " đã bị từ chối.",
+                         NotificationType.WARNING,
+                         "/my-bookings");
+          }
           return true;
      }
 
