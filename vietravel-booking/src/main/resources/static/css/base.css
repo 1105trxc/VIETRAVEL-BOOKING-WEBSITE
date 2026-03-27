@@ -1590,8 +1590,7 @@ img {
 }
 
 .status-CONFIRMED,
-.status-SUCCESS,
-.status-PAID {
+.status-SUCCESS {
     background: rgba(16, 185, 129, .12);
     color: #047857;
     border-color: rgba(16, 185, 129, .35)

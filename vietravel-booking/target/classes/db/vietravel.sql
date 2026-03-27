@@ -69,7 +69,7 @@ CREATE TABLE `bookings` (
   `total_adult` int NOT NULL DEFAULT '0',
   `total_child` int NOT NULL DEFAULT '0',
   `total_amount` decimal(12,2) NOT NULL DEFAULT '0.00',
-  `status` enum('PENDING','PAID','CONFIRMED','CANCEL_REQUESTED','CANCELED','COMPLETED') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDING',
+  `status` enum('PENDING','CONFIRMED','CANCEL_REQUESTED','CANCELED','COMPLETED') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDING',
   `cancel_requested_at` datetime DEFAULT NULL,
   `canceled_at` datetime DEFAULT NULL,
   `refund_amount` decimal(12,2) DEFAULT NULL,
