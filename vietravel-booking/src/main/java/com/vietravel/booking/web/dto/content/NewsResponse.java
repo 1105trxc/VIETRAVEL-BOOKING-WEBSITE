@@ -1,80 +1,21 @@
-package com.vietravel.booking.domain.entity.content;
+package com.vietravel.booking.web.dto.content;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
+import com.vietravel.booking.domain.entity.content.NewsStatus;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "news")
-public class News {
-     @Id
-     @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class NewsResponse {
      private Long id;
-
-     @Column(nullable = false, length = 300)
      private String title;
-
-     @Column(nullable = false, unique = true, length = 350)
      private String slug;
-
-     @Column(length = 600)
      private String thumbnail;
-
-     @Column(columnDefinition = "TEXT")
      private String summary;
-
-     @Column(name = "content_html", columnDefinition = "MEDIUMTEXT", nullable = false)
      private String contentHtml;
-
-     @Column(name = "view_count", nullable = false)
-     private Integer viewCount = 0;
-
-     @Column(name = "is_featured", nullable = false)
-     private Boolean isFeatured = false;
-
-     @Enumerated(EnumType.STRING)
-     @Column(nullable = false)
-     private NewsStatus status = NewsStatus.PUBLISHED;
-
-     @Column(name = "created_at", nullable = false)
+     private Integer viewCount;
+     private Boolean isFeatured;
+     private NewsStatus status;
      private LocalDateTime createdAt;
-
-     @Column(name = "updated_at", nullable = false)
      private LocalDateTime updatedAt;
-
-     @PrePersist
-     public void prePersist() {
-          LocalDateTime now = LocalDateTime.now();
-          if (createdAt == null) {
-               createdAt = now;
-          }
-          if (updatedAt == null) {
-               updatedAt = now;
-          }
-          if (viewCount == null) {
-               viewCount = 0;
-          }
-          if (isFeatured == null) {
-               isFeatured = false;
-          }
-          if (status == null) {
-               status = NewsStatus.PUBLISHED;
-          }
-     }
-
-     @PreUpdate
-     public void preUpdate() {
-          updatedAt = LocalDateTime.now();
-     }
 
      public Long getId() {
           return id;
