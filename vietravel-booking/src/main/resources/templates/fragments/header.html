@@ -2,6 +2,7 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <body>
 <header class="topbar" th:fragment="siteHeader(active)">
+    <div id="authState" class="sr-only" th:attr="data-auth=${currentUser != null}"></div>
     <div class="container topbar-inner">
         <a class="brand" th:href="@{/}">
             <img th:src="@{/images/logo.png}" alt="Vietravel">
@@ -77,6 +78,19 @@
                         <div class="noti-title">Thông báo</div>
                     </div>
                     <div class="noti-list" data-noti-list></div>
+                </div>
+            </div>
+
+            <div th:if="${currentUser}" class="wishlist-wrap" data-wishlist>
+                <button class="icon-btn wishlist-btn" type="button" title="Yêu thích" data-wishlist-toggle>
+                    <i class="fa-solid fa-heart"></i>
+                    <span class="noti-badge wishlist-badge" data-wishlist-count hidden>0</span>
+                </button>
+                <div class="wishlist-dropdown" data-wishlist-dropdown>
+                    <div class="wishlist-dropdown-head">
+                        <div class="wishlist-title">Yêu thích</div>
+                    </div>
+                    <div class="wishlist-list" data-wishlist-list></div>
                 </div>
             </div>
 
