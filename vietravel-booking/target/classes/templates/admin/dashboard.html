@@ -61,7 +61,13 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="placeholder-chart">Biểu đồ sẽ được tích hợp sau</div>
+                    <canvas id="bookingChart" height="120"></canvas>
+                    <script th:inline="javascript">
+                        /*<![CDATA[*/
+                        const bookingChartLabels = [[${bookingChartLabels}]];
+                        const bookingChartData = [[${bookingChartData}]];
+                        /*]]>*/
+                    </script>
                 </div>
             </div>
 
@@ -176,4 +182,41 @@
 </div>
 
 </body>
+<th:block th:fragment="additionalJs">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof Chart !== 'undefined' && document.getElementById('bookingChart')) {
+                const ctx = document.getElementById('bookingChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: bookingChartLabels,
+                        datasets: [{
+                            label: 'Số booking',
+                            data: bookingChartData,
+                            borderColor: '#007bff',
+                            backgroundColor: 'rgba(0,123,255,0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#007bff',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false },
+                            title: { display: false }
+                        },
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: { beginAtZero: true, grid: { color: '#eee' } }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</th:block>
 </html>

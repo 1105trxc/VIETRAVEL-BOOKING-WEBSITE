@@ -61,6 +61,19 @@ public class AdminDashboardController {
           model.addAttribute("upcomingDepartures",
                     departureRepository.findUpcoming(today, PageRequest.of(0, 3)));
 
+          // Booking chart data (7 days)
+          List<String> bookingChartLabels = new ArrayList<>();
+          List<Long> bookingChartData = new ArrayList<>();
+          for (int i = 6; i >= 0; i--) {
+               LocalDate d = today.minusDays(i);
+               long count = bookingRepository.countByCreatedAtBetween(
+                         d.atStartOfDay(), d.plusDays(1).atStartOfDay());
+               bookingChartLabels.add(d.format(DateTimeFormatter.ofPattern("dd/MM")));
+               bookingChartData.add(count);
+          }
+          model.addAttribute("bookingChartLabels", bookingChartLabels);
+          model.addAttribute("bookingChartData", bookingChartData);
+
           CalendarView calendarView = buildCalendar(today);
           model.addAttribute("calendarLabel", calendarView.label());
           model.addAttribute("calendarDays", calendarView.days());
